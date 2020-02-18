@@ -1,0 +1,156 @@
+To start up mongo in one temrinal do mongod to start the mongo daemon
+In a new window run just mongo and you'll open up the shell
+
+// {
+//     username: "bestKev",
+//     following: ["superkev", "ultrakev", "gigakev"],
+//     address : {
+//         street: "4 pinky st",
+//         city: "London"
+//     }
+// }
+ //Making a user for the mongo database
+db.createUser({
+    user: "Duch",
+    pwd: "1234",
+    roles: ["readWrite", "dbAdmin"]
+});
+
+//collection
+
+db.createCollection('users');
+
+//inserting
+
+db.users.insert({
+    first_name: "kev", last_name:"super"
+});
+
+db.users.insert(
+    [
+        {username:"KingClang", country: "England"}, {username:"Queenery", country:"Brazil", income: "50000"}
+    ]
+);
+
+//Querying, no need to create id's or make them increment
+
+db.users.find();
+{ "_id" : ObjectId("5acf74caeed608c3baa55325"), "username" : "superKev", "country" : "Canada" }
+
+db.users.find().pretty(); //Makes the result look nicer and easier to read
+
+//Update a user in the db
+db.users.update(
+    {username:"superKev"}, 
+    {username:"superKev", country:"Canada", income:"70000"}
+);
+
+//You can see that we need to re-create the object in the db
+//To avoid this we can use the $set:{}
+
+db.users.update({username:"KingClang"}, {$set:{income:"20000"}});
+
+//To increment a value in mongo we do the following
+
+db.users.update({username:"KingClang"}, {$inc:{age:1}});
+//This will take the age value and increment it by the number passed, so in this case by 1
+
+//To remove a field from a user we can do this
+
+db.users.update({username:"KingClang"},{$unset:{age:1}});
+
+//If we try to query for a user who doesn't exist then we get the follwing:
+
+db.users.update({username:"Mary"},{username:"Mary", country:"Ireland"});
+WriteResult({ "nMatched" : 0, "nUpserted" : 0, "nModified" : 0 })
+
+//However if we want to add that user if they don't exist we add the {upsert:true} option at the end
+> db.users.update({username:"Mary"},{username:"Mary", country:"Ireland"}, {upsert: true});
+
+WriteResult({
+	"nMatched" : 0,
+	"nUpserted" : 1,
+	"nModified" : 0,
+	"_id" : ObjectId("5acf79ae85da32788f9c92f6")
+})
+
+//If we want to change the name of a field that already exists we can do this
+
+db.users.update({username:"KingClang"}, {$rename:{"income":"monies"}});
+
+//To delete an item we can do this
+
+db.users.remove({username:"Mary"});
+
+//To delete the first one encountered we would
+
+db.users.remove({username:"Mary"}, {justOne:true});
+
+//To find a specific user
+
+db.users.find({first_name:"Timothy"});
+
+//To find one user OR another one based on a query
+
+db.users.find({$or:[{first_name:"Timothy"},{first_name:"Sharon"}]});
+
+//Find all users LESS THAN a certain age
+db.users.find({age:{$lt:40}}).pretty();
+//lt is less than and gt is greater than
+//lte and gte are less then or equal to and greater than or equal to
+
+//When dealing with objects like the address of the users we need to use quotes
+db.users.find({"address.city":"Boston"});
+
+//Searching through a property thats an array
+db.users.find({memberships: "mem1"});
+
+//Sorting, setting it to 1 means ascending order
+// -1 is descending
+db.users.find().sort({last_name:1});
+
+//Counting returned objects
+db.users.find().count();
+db.users.find({gender:"male"}).count();
+//We can set a limit on the number of returns
+db.users.find({gender:"male"}).limit(2);
+//We can then also sort this sub-list
+db.users.find({gender:"male"}).limit(2).sort({last_name:1});
+
+//Iterate through data and print out the names using a function
+db.users.find().forEach(function(doc){print("Customer name: " + doc.first_name)});
+
+
+//Creating a new database and initilizing it
+
+> use EmployeeDB
+switched to db EmployeeDB
+
+> db
+EmployeeDB
+
+> db.createUser({
+... ...     user: "Duch",
+... ...     pwd: "1234",
+... ...     roles: ["readWrite", "dbAdmin"]
+... ... });
+
+Successfully added user: { "user" : "Duch", "roles" : [ "readWrite", "dbAdmin" ] }
+
+> db.createCollection('Employee');
+{ "ok" : 1 }
+
+> show collections
+Employee
+
+    {Employeeid : 1, Employee Name : Guru99},
+	{Employeeid : 2, Employee Name : Joe},
+	{Employeeid : 3, Employee Name : Martin}
+
+db.Employee.insert(
+    [
+        {Employeeid: 1, "Employee Name": "Guru99"},
+        {Employeeid: 2, "Employee Name": "Joe"},
+        {Employeeid: 3, "Employee Name": "Martin"}
+    ]
+);
